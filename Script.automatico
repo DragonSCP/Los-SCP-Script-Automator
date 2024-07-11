@@ -1,11 +1,11 @@
 local https = require("ssl.https")
-local ltn12 = require("ltn12")
+local json = require("cjson")
 
--- Função para listar arquivos em um repositório público no GitHub
-local function listFilesInRepo(repoUrl)
+-- Função para buscar e processar um arquivo de script online
+local function fetchAndProcessScript(url)
     local response_body = {}
     local _, status_code, _, _ = https.request{
-        url = repoUrl,
+        url = url,
         headers = {
             ["User-Agent"] = "Lua-GitHub-Script"
         },
@@ -13,21 +13,32 @@ local function listFilesInRepo(repoUrl)
     }
 
     if status_code == 200 then
-        return table.concat(response_body)
+        local scriptContent = table.concat(response_body)
+        -- Aqui você pode processar o conteúdo do script conforme necessário
+        print("Conteúdo do script de", url)
+        print(scriptContent)
+        print("------------------------------------")
+
+        -- Se o script principal contiver links para outros arquivos, você pode processá-los aqui
+        -- Exemplo: encontrar novos links dentro do conteúdo do script
+        local newScriptUrls = {}
+
+        for link in scriptContent:gmatch('https?://[%w-_%.%?%.:+&~=]+') do
+            table.insert(newScriptUrls, link)
+        end
+
+        -- Exemplo: iterar sobre os novos links e processá-los
+        for _, newUrl in ipairs(newScriptUrls) do
+            fetchAndProcessScript(newUrl)
+        end
+
     else
-        return nil, "Erro na requisição: " .. status_code
+        print("Erro ao buscar script:", status_code)
     end
 end
 
--- Configurações do repositório
-local repoUrl = "https://github.com/DragonSCP/Los-SCP-Script-Automator/tree/main"
+-- URL do próprio arquivo de script principal
+local mainScriptUrl = "https://raw.githubusercontent.com/DragonSCP/Los-SCP-Script-Automator/main/Script.automatico"
 
--- Exemplo de uso: listar arquivos no repositório
-local content, err = listFilesInRepo(repoUrl)
-if err then
-    print("Erro ao listar arquivos:", err)
-else
-    -- Aqui você pode processar o conteúdo do repositório como necessário
-    print("Conteúdo do repositório:")
-    print(content)
-end
+-- Exemplo de uso: buscar e processar o script principal
+fetchAndProcessScript(mainScriptUrl)
