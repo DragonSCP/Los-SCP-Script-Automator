@@ -1,1 +1,33 @@
+local https = require("ssl.https")
+local ltn12 = require("ltn12")
 
+-- Função para listar arquivos em um repositório público no GitHub
+local function listFilesInRepo(repoUrl)
+    local response_body = {}
+    local _, status_code, _, _ = https.request{
+        url = repoUrl,
+        headers = {
+            ["User-Agent"] = "Lua-GitHub-Script"
+        },
+        sink = ltn12.sink.table(response_body)
+    }
+
+    if status_code == 200 then
+        return table.concat(response_body)
+    else
+        return nil, "Erro na requisição: " .. status_code
+    end
+end
+
+-- Configurações do repositório
+local repoUrl = "https://github.com/DragonSCP/Los-SCP-Script-Automator/tree/main"
+
+-- Exemplo de uso: listar arquivos no repositório
+local content, err = listFilesInRepo(repoUrl)
+if err then
+    print("Erro ao listar arquivos:", err)
+else
+    -- Aqui você pode processar o conteúdo do repositório como necessário
+    print("Conteúdo do repositório:")
+    print(content)
+end
