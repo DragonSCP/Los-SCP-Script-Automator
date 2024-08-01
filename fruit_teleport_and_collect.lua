@@ -1,26 +1,37 @@
--- Funções auxiliares para o personagem
+-- FruitCollectorModule.lua
+
+-- Espera o jogo carregar completamente
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+repeat
+    task.wait()
+until game:GetService("Players") and game:GetService("Workspace") and game:GetService("ReplicatedStorage")
+
+local LocalPlayer = game:GetService("Players").LocalPlayer
+
+-- Função para retornar o HumanoidRootPart
 local function returnHRP()
     if not LocalPlayer.Character then
         return
     end
-    if not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        return
-    else
-        return LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    end
+    return LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
 end
 
+-- Função para retornar o Humanoid
 local function returnHUM()
     if not LocalPlayer.Character then
         return
     end
-    if not LocalPlayer.Character:FindFirstChild("Humanoid") then
-        return
-    else
-        return LocalPlayer.Character:FindFirstChild("Humanoid")
-    end
+    return LocalPlayer.Character:FindFirstChild("Humanoid")
 end
 
+repeat
+    task.wait()
+until returnHRP() and returnHUM()
+
+-- Tabela de atributos do HumanoidRootPart
 local HrpTable = {
     Velocity = returnHRP().Velocity,
     Transparency = returnHRP().Transparency,
@@ -30,6 +41,7 @@ local HrpTable = {
     Anchored = returnHRP().Anchored
 }
 
+-- Função para spoofar o HumanoidRootPart
 local function spoofHRP()
     for i, v in pairs(HrpTable) do
         spoof(returnHRP(), tostring(i), returnHRP():GetAttribute(v))
@@ -37,6 +49,7 @@ local function spoofHRP()
     return true
 end
 
+-- Função para teletransportar o jogador
 local function TpTo(CFrame, Refresh)
     if Refresh then
         returnHUM().Health = 0
@@ -53,7 +66,7 @@ local function TpTo(CFrame, Refresh)
     return true
 end
 
--- Função para coletar frutas automaticamente
+-- Função para encontrar e armazenar frutas
 local AutoCollectEnabled = false
 local function findAndStoreFruits()
     while AutoCollectEnabled do
@@ -82,3 +95,17 @@ local function findAndStoreFruits()
         task.wait(1) -- Reduz o tempo entre as verificações para 1 segundo
     end
 end
+
+-- Função para alternar a coleta automática de frutas
+local function toggleAutoCollect()
+    AutoCollectEnabled = not AutoCollectEnabled
+    if AutoCollectEnabled then
+        findAndStoreFruits()
+    end
+end
+
+-- Retorna as funções para serem usadas pelo script principal
+return {
+    TpTo = TpTo,
+    toggleAutoCollect = toggleAutoCollect
+}
